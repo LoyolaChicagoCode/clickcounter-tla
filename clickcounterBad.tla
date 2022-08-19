@@ -3,21 +3,26 @@ EXTENDS TLC, Integers
 CONSTANTS CounterMin, CounterMax, N
 ASSUME CounterMin < CounterMax
 
+INC == "inc"
+DEC == "dec"
+RESET == "reset"
+NONE == "none"
+
 (* --algorithm unbounded_clickcounter
 
-variables action = "none"
+variables action = NONE
 
 process user = "user"
 begin U:
   while TRUE do
     either 
-      action := "inc"
+      action := INC
     or 
-      action := "dec"
+      action := DEC
     or 
-      action := "reset"
+      action := RESET
     or 
-      action := "none"
+      action := NONE
     end either
   end while
 end process
@@ -27,11 +32,11 @@ variables value = CounterMin
 begin C:
   while TRUE do
     either
-      await action = "inc"; value := value + 1
+      await action = INC; value := value + 1
     or
-      await action = "dec"; value := value - 1
+      await action = DEC; value := value - 1
     or
-      await action = "reset"; value := CounterMin
+      await action = RESET; value := CounterMin
     end either
     assert CounterMin <= value /\ value <= CounterMax
   end while

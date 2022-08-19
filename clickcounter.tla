@@ -3,21 +3,26 @@ EXTENDS TLC, Integers
 CONSTANTS CounterMin, CounterMax, N
 ASSUME CounterMin < CounterMax
 
+INC == "inc"
+DEC == "dec"
+RESET == "reset"
+NONE == "none"
+
 (* --algorithm bounded_clickcounter
 
-variables action = "none"
+variables action = NONE
 
 process user = "user"
 begin U:
   while TRUE do
     either 
-      action := "inc"
+      action := INC
     or 
-      action := "dec"
+      action := DEC
     or 
-      action := "reset"
+      action := RESET
     or 
-      action := "none"
+      action := NONE
     end either
   end while
 end process
@@ -27,13 +32,13 @@ variables value = CounterMin
 begin C:
   while TRUE do
     either
-      await action = "inc"
+      await action = INC
     ; if value < CounterMax then value := value + 1 end if
     or
-      await action = "dec"
+      await action = DEC
     ; if value > CounterMin then value := value - 1 end if
     or
-      await action = "reset"
+      await action = RESET
     ; value := CounterMin
     end either
   ; assert CounterMin <= value /\ value <= CounterMax
@@ -41,7 +46,7 @@ begin C:
 end process
 
 end algorithm *)
-\* BEGIN TRANSLATION (chksum(pcal) = "d597c43f" /\ chksum(tla) = "12f9a1a4")
+\* BEGIN TRANSLATION (chksum(pcal) = "d80ce1ef" /\ chksum(tla) = "aeb12eec")
 VARIABLES action, value
 
 vars == << action, value >>
@@ -49,30 +54,30 @@ vars == << action, value >>
 ProcSet == {"user"} \cup {"counter"}
 
 Init == (* Global variables *)
-        /\ action = "none"
+        /\ action = NONE
         (* Process counter *)
         /\ value = CounterMin
 
-user == /\ \/ /\ action' = "inc"
-           \/ /\ action' = "dec"
-           \/ /\ action' = "reset"
-           \/ /\ action' = "none"
+user == /\ \/ /\ action' = INC
+           \/ /\ action' = DEC
+           \/ /\ action' = RESET
+           \/ /\ action' = NONE
         /\ value' = value
 
-counter == /\ \/ /\ action = "inc"
+counter == /\ \/ /\ action = INC
                  /\ IF value < CounterMax
                        THEN /\ value' = value + 1
                        ELSE /\ TRUE
                             /\ value' = value
-              \/ /\ action = "dec"
+              \/ /\ action = DEC
                  /\ IF value > CounterMin
                        THEN /\ value' = value - 1
                        ELSE /\ TRUE
                             /\ value' = value
-              \/ /\ action = "reset"
+              \/ /\ action = RESET
                  /\ value' = CounterMin
            /\ Assert(CounterMin <= value' /\ value' <= CounterMax, 
-                     "Failure of assertion at line 39, column 5.")
+                     "Failure of assertion at line 44, column 5.")
            /\ UNCHANGED action
 
 Next == user \/ counter
