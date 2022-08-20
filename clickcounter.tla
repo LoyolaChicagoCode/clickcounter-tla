@@ -31,7 +31,8 @@ process counter = "counter"
 variables value = CounterMin
 begin C:
   while TRUE do
-    either
+    assert CounterMin <= value /\ value <= CounterMax
+  ; either
       await action = INC
     ; if value < CounterMax then value := value + 1 end if
     or
@@ -41,12 +42,11 @@ begin C:
       await action = RESET
     ; value := CounterMin
     end either
-  ; assert CounterMin <= value /\ value <= CounterMax
   end while
 end process
 
 end algorithm *)
-\* BEGIN TRANSLATION (chksum(pcal) = "d80ce1ef" /\ chksum(tla) = "aeb12eec")
+\* BEGIN TRANSLATION (chksum(pcal) = "b4fb460f" /\ chksum(tla) = "5cbcb0f9")
 VARIABLES action, value
 
 vars == << action, value >>
@@ -64,7 +64,9 @@ user == /\ \/ /\ action' = INC
            \/ /\ action' = NONE
         /\ value' = value
 
-counter == /\ \/ /\ action = INC
+counter == /\ Assert(CounterMin <= value /\ value <= CounterMax, 
+                     "Failure of assertion at line 34, column 5.")
+           /\ \/ /\ action = INC
                  /\ IF value < CounterMax
                        THEN /\ value' = value + 1
                        ELSE /\ TRUE
@@ -76,8 +78,6 @@ counter == /\ \/ /\ action = INC
                             /\ value' = value
               \/ /\ action = RESET
                  /\ value' = CounterMin
-           /\ Assert(CounterMin <= value' /\ value' <= CounterMax, 
-                     "Failure of assertion at line 44, column 5.")
            /\ UNCHANGED action
 
 Next == user \/ counter
