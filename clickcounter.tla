@@ -1,6 +1,6 @@
 ---- MODULE clickcounter ----
 EXTENDS TLC, Integers
-CONSTANTS CounterMin, CounterMax, N
+CONSTANTS CounterMin, CounterMax
 ASSUME CounterMin < CounterMax
 
 INC == "inc"
@@ -16,14 +16,15 @@ process user = "user"
 begin U:
   while TRUE do
     either 
-      action := INC
+      I: action := INC
     or 
-      action := DEC
+      D: action := DEC
     or 
-      action := RESET
+      R: action := RESET
     or 
-      action := NONE
+      N: action := NONE
     end either
+  ; print action
   end while
 end process
   
@@ -32,7 +33,7 @@ variables value = CounterMin
 begin C:
   while TRUE do
     assert CounterMin <= value /\ value <= CounterMax
-  ; either
+  ; A: either
       await action = INC
     ; if value < CounterMax then value := value + 1 end if
     or
@@ -42,11 +43,12 @@ begin C:
       await action = RESET
     ; value := CounterMin
     end either
+  ; print value
   end while
 end process
 
 end algorithm *)
-\* BEGIN TRANSLATION (chksum(pcal) = "b4fb460f" /\ chksum(tla) = "5cbcb0f9")
+\* BEGIN TRANSLATION (chksum(pcal) = "1dad8e5b" /\ chksum(tla) = "27ff4caa")
 VARIABLES action, value
 
 vars == << action, value >>
@@ -62,10 +64,11 @@ user == /\ \/ /\ action' = INC
            \/ /\ action' = DEC
            \/ /\ action' = RESET
            \/ /\ action' = NONE
+        /\ PrintT(action')
         /\ value' = value
 
 counter == /\ Assert(CounterMin <= value /\ value <= CounterMax, 
-                     "Failure of assertion at line 34, column 5.")
+                     "Failure of assertion at line 35, column 5.")
            /\ \/ /\ action = INC
                  /\ IF value < CounterMax
                        THEN /\ value' = value + 1
@@ -78,6 +81,7 @@ counter == /\ Assert(CounterMin <= value /\ value <= CounterMax,
                             /\ value' = value
               \/ /\ action = RESET
                  /\ value' = CounterMin
+           /\ PrintT(value')
            /\ UNCHANGED action
 
 Next == user \/ counter

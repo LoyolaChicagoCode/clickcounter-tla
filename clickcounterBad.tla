@@ -1,6 +1,12 @@
+(* 
+TODO need to model event queue to avoid missed signals! 
+
+A bit similar to Hanoi...
+*)
+
 ---- MODULE clickcounterBad ----
 EXTENDS TLC, Integers
-CONSTANTS CounterMin, CounterMax, N
+CONSTANTS CounterMin, CounterMax
 ASSUME CounterMin < CounterMax
 
 INC == "inc"
@@ -43,7 +49,7 @@ begin C:
 end process
 
 end algorithm *)
-\* BEGIN TRANSLATION (chksum(pcal) = "418e8b42" /\ chksum(tla) = "cc8832e9")
+\* BEGIN TRANSLATION (chksum(pcal) = "418e8b42" /\ chksum(tla) = "b0691739")
 VARIABLES action, value
 
 vars == << action, value >>
@@ -62,7 +68,7 @@ user == /\ \/ /\ action' = INC
         /\ value' = value
 
 counter == /\ Assert(CounterMin <= value /\ value <= CounterMax, 
-                     "Failure of assertion at line 34, column 5.")
+                     "Failure of assertion at line 40, column 5.")
            /\ \/ /\ action = INC
                  /\ value' = value + 1
               \/ /\ action = DEC
