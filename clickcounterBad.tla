@@ -1,85 +1,57 @@
-(* 
-TODO need to model event queue to avoid missed signals! 
-
-A bit similar to Hanoi...
-*)
-
 ---- MODULE clickcounterBad ----
-EXTENDS TLC, Integers
+EXTENDS TLC, Integers, Sequences
 CONSTANTS CounterMin, CounterMax
 ASSUME CounterMin < CounterMax
 
-INC == "inc"
-DEC == "dec"
-RESET == "reset"
-NONE == "none"
-
 (* --algorithm unbounded_clickcounter
 
-variables action = NONE
+variables value = CounterMin
 
-process user = "user"
-begin U:
+define
+  Bounded == CounterMin <= value /\ value <= CounterMax
+end define
+
+macro Inc() begin
+  value := value + 1
+end macro
+
+macro Dec() begin
+  value := value - 1
+end macro
+
+macro Reset() begin
+  value := CounterMin
+end macro
+
+begin
   while TRUE do
     either 
-      action := INC
+      Inc()
     or 
-      action := DEC
+      Dec()
     or 
-      action := RESET
-    or 
-      action := NONE
+      Reset()
     end either
   end while
-end process
-  
-process counter = "counter"
-variables value = CounterMin
-begin C:
-  while TRUE do
-    assert CounterMin <= value /\ value <= CounterMax
-  ; either
-      await action = INC; value := value + 1
-    or
-      await action = DEC; value := value - 1
-    or
-      await action = RESET; value := CounterMin
-    end either
-  end while
-end process
-
 end algorithm *)
-\* BEGIN TRANSLATION (chksum(pcal) = "418e8b42" /\ chksum(tla) = "b0691739")
-VARIABLES action, value
+\* BEGIN TRANSLATION (chksum(pcal) = "5363801e" /\ chksum(tla) = "986553d0")
+VARIABLE value
 
-vars == << action, value >>
+(* define statement *)
+Bounded == CounterMin <= value /\ value <= CounterMax
 
-ProcSet == {"user"} \cup {"counter"}
+
+vars == << value >>
 
 Init == (* Global variables *)
-        /\ action = NONE
-        (* Process counter *)
         /\ value = CounterMin
 
-user == /\ \/ /\ action' = INC
-           \/ /\ action' = DEC
-           \/ /\ action' = RESET
-           \/ /\ action' = NONE
-        /\ value' = value
-
-counter == /\ Assert(CounterMin <= value /\ value <= CounterMax, 
-                     "Failure of assertion at line 40, column 5.")
-           /\ \/ /\ action = INC
-                 /\ value' = value + 1
-              \/ /\ action = DEC
-                 /\ value' = value - 1
-              \/ /\ action = RESET
-                 /\ value' = CounterMin
-           /\ UNCHANGED action
-
-Next == user \/ counter
+Next == \/ /\ value' = value + 1
+        \/ /\ value' = value - 1
+        \/ /\ value' = CounterMin
 
 Spec == Init /\ [][Next]_vars
 
 \* END TRANSLATION 
+
 ====

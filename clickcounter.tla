@@ -1,92 +1,66 @@
 ---- MODULE clickcounter ----
-EXTENDS TLC, Integers
+EXTENDS TLC, Integers, Sequences
 CONSTANTS CounterMin, CounterMax
 ASSUME CounterMin < CounterMax
 
-INC == "inc"
-DEC == "dec"
-RESET == "reset"
-NONE == "none"
-
 (* --algorithm bounded_clickcounter
 
-variables action = NONE
+variables value = CounterMin, n = 10
 
-process user = "user"
-begin U:
-  while TRUE do
-    either 
-      I: action := INC
-    or 
-      D: action := DEC
-    or 
-      R: action := RESET
-    or 
-      N: action := NONE
-    end either
-  ; print action
-  end while
-end process
-  
-process counter = "counter"
-variables value = CounterMin
-begin C:
-  while TRUE do
-    assert CounterMin <= value /\ value <= CounterMax
-  ; A: either
-      await action = INC
-    ; if value < CounterMax then value := value + 1 end if
-    or
-      await action = DEC
-    ; if value > CounterMin then value := value - 1 end if
-    or
-      await action = RESET
-    ; value := CounterMin
-    end either
-  ; print value
-  end while
-end process
+define
+  Bounded == CounterMin <= value /\ value <= CounterMax
+end define
 
+macro Inc() begin
+  if value < CounterMax then value := value + 1 end if
+end macro
+
+macro Dec() begin
+  if value > CounterMin then value := value - 1 end if
+end macro
+
+macro Reset() begin
+  value := CounterMin
+end macro
+
+begin
+  while TRUE do
+    n := n - 1
+  ; either 
+      Inc()
+    or 
+      Dec()
+    or 
+      Reset()
+    end either
+  end while
 end algorithm *)
-\* BEGIN TRANSLATION (chksum(pcal) = "1dad8e5b" /\ chksum(tla) = "27ff4caa")
-VARIABLES action, value
+\* BEGIN TRANSLATION (chksum(pcal) = "fe58f7de" /\ chksum(tla) = "645407fa")
+VARIABLES value, n
 
-vars == << action, value >>
+(* define statement *)
+Bounded == CounterMin <= value /\ value <= CounterMax
 
-ProcSet == {"user"} \cup {"counter"}
+
+vars == << value, n >>
 
 Init == (* Global variables *)
-        /\ action = NONE
-        (* Process counter *)
         /\ value = CounterMin
+        /\ n = 10
 
-user == /\ \/ /\ action' = INC
-           \/ /\ action' = DEC
-           \/ /\ action' = RESET
-           \/ /\ action' = NONE
-        /\ PrintT(action')
-        /\ value' = value
-
-counter == /\ Assert(CounterMin <= value /\ value <= CounterMax, 
-                     "Failure of assertion at line 35, column 5.")
-           /\ \/ /\ action = INC
-                 /\ IF value < CounterMax
-                       THEN /\ value' = value + 1
-                       ELSE /\ TRUE
-                            /\ value' = value
-              \/ /\ action = DEC
-                 /\ IF value > CounterMin
-                       THEN /\ value' = value - 1
-                       ELSE /\ TRUE
-                            /\ value' = value
-              \/ /\ action = RESET
-                 /\ value' = CounterMin
-           /\ PrintT(value')
-           /\ UNCHANGED action
-
-Next == user \/ counter
+Next == /\ n' = n - 1
+        /\ \/ /\ IF value < CounterMax
+                    THEN /\ value' = value + 1
+                    ELSE /\ TRUE
+                         /\ value' = value
+           \/ /\ IF value > CounterMin
+                    THEN /\ value' = value - 1
+                    ELSE /\ TRUE
+                         /\ value' = value
+           \/ /\ value' = CounterMin
 
 Spec == Init /\ [][Next]_vars
 
 \* END TRANSLATION 
+
 ====
